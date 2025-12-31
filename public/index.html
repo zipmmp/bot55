@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>TikTok Image Extractor</title>
+<style>
+body { font-family: Arial; text-align:center; padding:30px; }
+input[type=text] { width:60%; padding:10px; font-size:16px; }
+button { padding:10px 20px; font-size:16px; }
+img { max-width:300px; margin:10px; border:1px solid #ccc; }
+</style>
+</head>
+<body>
+<h1>استخراج صور TikTok</h1>
+<input type="text" id="url" placeholder="أدخل رابط TikTok">
+<button onclick="extract()">استخراج الصور</button>
+<div id="results"></div>
+
+<script>
+async function extract() {
+    const url = document.getElementById("url").value.trim();
+    if(!url) return alert("أدخل رابط صالح");
+
+    const resultsDiv = document.getElementById("results");
+    resultsDiv.innerHTML = "⏳ جاري استخراج الصور...";
+
+    try {
+        const res = await fetch("/extract", {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({url})
+        });
+        const data = await res.json();
+        if(data.error) {
+            resultsDiv.innerHTML = "⚠️ " + data.error;
+            return;
+        }
+        if(data.images.length===0){
+            resultsDiv.innerHTML = "⚠️ لم يتم العثور على أي صور";
+            return;
+        }
+
+        resultsDiv.innerHTML = "";
+        data.images.forEach(src=>{
+            const img = document.createElement("img");
+            img.src = src;
+            resultsDiv.appendChild(img);
+        });
+    } catch(e){
+        resultsDiv.innerHTML = "⚠️ حدث خطأ أثناء المعالجة";
+        console.error(e);
+    }
+}
+</script>
+</body>
+</html>
